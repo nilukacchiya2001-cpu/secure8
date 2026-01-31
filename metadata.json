@@ -1,0 +1,5 @@
+{
+  "name": "Secure8 - Smart Password Generator",
+  "description": "A sophisticated AI-powered tool that generates personalized, unique 8-character passwords based on your profile and preferred symbols using Gemini 3 Pro.",
+  "requestFramePermissions": []
+}
