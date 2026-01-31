@@ -2,9 +2,9 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { UserData, PasswordSuggestion } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
-
 export const generatePasswords = async (userData: UserData, historyStrings: string[]): Promise<PasswordSuggestion[]> => {
+  // Always initialize inside the function to ensure the most up-to-date environment variables are used
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
   const recentHistory = historyStrings.slice(-40);
   
   const prompt = `
@@ -15,12 +15,11 @@ export const generatePasswords = async (userData: UserData, historyStrings: stri
     - Preferred Special Characters: ${userData.specialChars}
 
     STRICT REQUIREMENTS:
-    1. LENGTH: Every single password MUST be EXACTLY 8 characters long. No more, no less.
+    1. LENGTH: Every single password MUST be EXACTLY 8 characters long.
     2. UNIQUENESS: Do not suggest any passwords found in this history: [${recentHistory.join(', ')}].
-    3. CREATIVITY: Do not just concatenate. Use leetspeak (e.g., a->4, e->3, s->5, i->1, o->0), reverse parts of strings, use mixed case, and integrate symbols intelligently.
-    4. VARIETY: Provide a mix of strengths.
-    5. CATEGORY: Assign a logical category to each password based on its style (e.g., "Professional", "Social Media", "Banking", "Gaming", "Personal", "Ultra-Secure").
-    6. FORMAT: Return a JSON array of objects.
+    3. CREATIVITY: Use leetspeak (e.g., a->4, e->3, s->5, i->1, o->0), reversals, and mixed case.
+    4. VARIETY: Provide a mix of strengths and categories (e.g., "Social", "Banking", "Ultra-Secure").
+    5. FORMAT: Return a JSON array of objects.
   `;
 
   try {
@@ -45,7 +44,7 @@ export const generatePasswords = async (userData: UserData, historyStrings: stri
       }
     });
 
-    const jsonStr = response.text.trim();
+    const jsonStr = response.text || "[]";
     const parsed: any[] = JSON.parse(jsonStr);
     
     return parsed.map((p, index) => ({
@@ -55,6 +54,6 @@ export const generatePasswords = async (userData: UserData, historyStrings: stri
     }));
   } catch (error) {
     console.error("Gemini Generation Error:", error);
-    throw new Error("Failed to generate secure suggestions. Please check your inputs.");
+    throw new Error("Failed to generate secure suggestions. Please check your network or API configuration.");
   }
 };
